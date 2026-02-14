@@ -1,0 +1,46 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id          String       @id @default(cuid())
+  email       String       @unique
+  password    String
+  name        String?
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+  curriculums Curriculum[]
+  quizzes     Quiz[]
+}
+
+model Curriculum {
+  id          String       @id @default(cuid())
+  title       String
+  description String?
+  subject     String
+  gradeLevel  String
+  content     String
+  isPublic    Boolean      @default(true)
+  userId      String?
+  user        User?        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+  quizzes     Quiz[]
+}
+
+model Quiz {
+  id            String      @id @default(cuid())
+  title         String
+  questions     String
+  curriculumId  String?
+  curriculum    Curriculum? @relation(fields: [curriculumId], references: [id], onDelete: SetNull)
+  userId        String
+  user          User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+}
