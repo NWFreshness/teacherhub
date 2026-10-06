@@ -205,6 +205,59 @@ async function main() {
     console.log('Created curriculum:', created.title)
   }
 
+  const prompts = [
+    {
+      id: 'prompt-algebra-exit-ticket',
+      title: 'Two-step equation exit ticket',
+      description: 'Asks the model for three problems at mixed difficulty, plus a short error analysis the teacher can project.',
+      subject: 'Math',
+      gradeLevel: '6',
+      purpose: 'Assessment',
+      aiTool: 'Any tool',
+      curriculumId: 'mathematics-grade-6---algebra-basics',
+      body: `You are a 6th grade math teacher. Using only two-step equations with positive whole numbers, write an exit ticket with:
+- 1 easy equation
+- 1 medium equation
+- 1 equation written as a short word problem
+After the problems, list the answer key and one common mistake students make on each item. Keep the reading level at grade 6.`,
+    },
+    {
+      id: 'prompt-earth-science-stations',
+      title: 'Rock cycle station cards',
+      description: 'Builds short station directions a teacher can print. Works best after the rocks and minerals topic.',
+      subject: 'Science',
+      gradeLevel: '4',
+      purpose: 'Classroom activity',
+      aiTool: 'ChatGPT',
+      curriculumId: 'science-grade-4---earth-science',
+      body: `Create 4 station cards for a 4th grade Earth science lesson on the rock cycle. Each card needs a title, a 2-sentence explanation, and one hands-on task using classroom materials (no lab equipment). End with 3 discussion questions the teacher can ask when students rotate.`,
+    },
+    {
+      id: 'prompt-ela-feedback',
+      title: 'Literary analysis comment bank',
+      description: 'A comment bank for thesis, evidence, and explanation. Not tied to one curriculum.',
+      subject: 'ELA',
+      gradeLevel: '8',
+      purpose: 'Student feedback',
+      aiTool: 'Claude',
+      curriculumId: 'ela-grade-8---literary-analysis',
+      body: `Write a bank of 12 short feedback comments for 8th grade literary analysis paragraphs. Group them into thesis, evidence, and explanation. Each comment should be specific, kind, and tell the student the next step. Avoid scores and avoid rewriting the student's sentence for them.`,
+    },
+  ]
+
+  for (const prompt of prompts) {
+    await prisma.prompt.upsert({
+      where: { id: prompt.id },
+      update: {},
+      create: {
+        ...prompt,
+        isPublic: true,
+        userId: demoUser.id,
+      },
+    })
+    console.log('Created prompt:', prompt.title)
+  }
+
   console.log('Seed completed successfully!')
 }
 

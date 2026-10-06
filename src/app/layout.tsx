@@ -9,7 +9,7 @@ const inter = Inter({
 
 export const metadata: Metadata = {
   title: "TeacherHub LMS",
-  description: "A teacher-focused Learning Management Platform for curriculum management and AI-powered quiz generation",
+  description: "A teacher-focused platform for curriculum, shared AI prompts, and quiz generation",
 };
 
 export default function RootLayout({

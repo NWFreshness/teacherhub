@@ -2,7 +2,7 @@
 
 import Link from "next/link"
 import { usePathname, useRouter } from "next/navigation"
-import { BookOpen, LayoutDashboard, GraduationCap, LogOut, Sparkles } from "lucide-react"
+import { BookOpen, LayoutDashboard, GraduationCap, LogOut, MessageSquare, NotebookPen, Sparkles } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import {
   DropdownMenu,
@@ -16,6 +16,8 @@ import { useEffect, useState } from "react"
 const navItems = [
   { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
   { href: "/curricula", label: "Curricula", icon: BookOpen },
+  { href: "/prompts", label: "Prompts", icon: MessageSquare },
+  { href: "/lessons", label: "Lessons", icon: NotebookPen },
   { href: "/quiz-generator", label: "Quiz Generator", icon: Sparkles },
 ]
 

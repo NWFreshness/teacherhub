@@ -3,8 +3,8 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
+  provider = "sqlite"
+  url      = "file:./dev.db"
 }
 
 model User {
@@ -16,6 +16,10 @@ model User {
   updatedAt   DateTime     @updatedAt
   curriculums Curriculum[]
   quizzes     Quiz[]
+  prompts     Prompt[]
+  lessons     Lesson[]
+  savedCurricula SavedCurriculum[]
+  savedPrompts   SavedPrompt[]
 }
 
 model Curriculum {
@@ -31,6 +35,9 @@ model Curriculum {
   createdAt   DateTime     @default(now())
   updatedAt   DateTime     @updatedAt
   quizzes     Quiz[]
+  prompts     Prompt[]
+  lessons     Lesson[]
+  saves       SavedCurriculum[]
 }
 
 model Quiz {
@@ -43,4 +50,62 @@ model Quiz {
   user          User        @relation(fields: [userId], references: [id], onDelete: Cascade)
   createdAt     DateTime    @default(now())
   updatedAt     DateTime    @updatedAt
+}
+
+model Prompt {
+  id           String      @id @default(cuid())
+  title        String
+  description  String?
+  body         String
+  subject      String?
+  gradeLevel   String?
+  purpose      String?
+  aiTool       String?
+  isPublic     Boolean     @default(true)
+  curriculumId String?
+  curriculum   Curriculum? @relation(fields: [curriculumId], references: [id], onDelete: SetNull)
+  userId       String
+  user         User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  lessons      Lesson[]
+  saves        SavedPrompt[]
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
+}
+
+model SavedCurriculum {
+  userId       String
+  curriculumId String
+  createdAt    DateTime   @default(now())
+  user         User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  curriculum   Curriculum @relation(fields: [curriculumId], references: [id], onDelete: Cascade)
+
+  @@id([userId, curriculumId])
+}
+
+model SavedPrompt {
+  userId    String
+  promptId  String
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  prompt    Prompt   @relation(fields: [promptId], references: [id], onDelete: Cascade)
+
+  @@id([userId, promptId])
+}
+
+model Lesson {
+  id                    String      @id @default(cuid())
+  title                 String
+  note                  String?
+  objective             String
+  sequence              String
+  materials             String
+  checkForUnderstanding String
+  curriculumId          String?
+  curriculum            Curriculum? @relation(fields: [curriculumId], references: [id], onDelete: SetNull)
+  promptId              String?
+  prompt                Prompt?     @relation(fields: [promptId], references: [id], onDelete: SetNull)
+  userId                String
+  user                  User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt             DateTime    @default(now())
+  updatedAt             DateTime    @updatedAt
 }

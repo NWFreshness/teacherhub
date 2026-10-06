@@ -1,5 +1,5 @@
 import Link from "next/link"
-import { GraduationCap, BookOpen, Sparkles, Shield } from "lucide-react"
+import { GraduationCap, BookOpen, MessageSquare, Sparkles, Shield } from "lucide-react"
 
 export default function HomePage() {
   return (
@@ -35,8 +35,8 @@ export default function HomePage() {
             Your AI-Powered Teaching Assistant
           </h1>
           <p className="mt-6 text-lg leading-8 text-slate-600">
-            TeacherHub makes teachers&apos; lives easier with a curriculum download hub aligned to WA/OR 
-            Common Core standards and an AI-powered quiz generator that creates assessments in seconds.
+            TeacherHub makes teachers&apos; lives easier with a curriculum hub, a shared library of
+            teacher-made AI prompts, and a quiz generator that creates assessments in seconds.
           </p>
           <div className="mt-10 flex items-center justify-center gap-x-6">
             <Link href="/register">
@@ -53,7 +53,7 @@ export default function HomePage() {
         </div>
 
         {/* Features */}
-        <div className="mt-24 grid max-w-lg mx-auto grid-cols-1 gap-8 sm:mt-16 lg:max-w-none lg:grid-cols-3">
+        <div className="mt-24 grid max-w-lg mx-auto grid-cols-1 gap-8 sm:mt-16 sm:max-w-none sm:grid-cols-2 lg:grid-cols-4">
           <div className="flex flex-col items-start rounded-2xl bg-white p-6 shadow-lg border border-slate-100">
             <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-blue-100">
               <BookOpen className="h-6 w-6 text-blue-600" />
@@ -62,6 +62,16 @@ export default function HomePage() {
             <p className="mt-2 text-sm leading-6 text-slate-600">
               Browse and download pre-built curricula aligned to Washington and Oregon Common Core standards. 
               Save your favorites for quick access.
+            </p>
+          </div>
+
+          <div className="flex flex-col items-start rounded-2xl bg-white p-6 shadow-lg border border-slate-100">
+            <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-violet-100">
+              <MessageSquare className="h-6 w-6 text-violet-600" />
+            </div>
+            <h3 className="mt-4 text-lg font-semibold text-slate-900">Prompt Library</h3>
+            <p className="mt-2 text-sm leading-6 text-slate-600">
+              Upload the AI prompts that work in your classroom, then turn a prompt and a curriculum into a saved lesson.
             </p>
           </div>
 

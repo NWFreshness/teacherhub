@@ -8,9 +8,12 @@ import { ArrowLeft } from "lucide-react"
 import { prisma } from "@/lib/db"
 import { CurriculumDetailClient } from "@/components/curriculum-detail-client"
 
-async function getCurriculum(id: string) {
-  return await prisma.curriculum.findUnique({
+async function getCurriculum(id: string, userId: string) {
+  return prisma.curriculum.findUnique({
     where: { id },
+    include: {
+      saves: { where: { userId }, select: { userId: true } },
+    },
   })
 }
 
@@ -20,14 +23,16 @@ export default async function CurriculumDetailPage({
   params: Promise<{ id: string }>
 }) {
   const session = await auth()
-  if (!session?.user) {
+  if (!session?.user?.id) {
     redirect("/login")
   }
 
   const { id } = await params
-  const curriculum = await getCurriculum(id)
+  const curriculum = await getCurriculum(id, session.user.id)
 
-  if (!curriculum) {
+  const hidden = !curriculum || (!curriculum.isPublic && curriculum.userId !== session.user.id)
+
+  if (!curriculum || hidden) {
     return (
       <div className="min-h-screen bg-slate-50">
         <Header />
@@ -52,7 +57,11 @@ export default async function CurriculumDetailPage({
     <div className="min-h-screen bg-slate-50">
       <Header />
       <main className="container mx-auto px-4 py-8">
-        <CurriculumDetailClient curriculum={curriculum} />
+        <CurriculumDetailClient
+          curriculum={curriculum}
+          saved={curriculum.saves.length > 0}
+          owned={curriculum.userId === session.user.id}
+        />
       </main>
     </div>
   )

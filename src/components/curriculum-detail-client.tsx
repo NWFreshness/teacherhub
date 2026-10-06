@@ -6,6 +6,7 @@ import { ArrowLeft, Download, BookOpen } from "lucide-react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
+import { SaveButton } from "@/components/save-button"
 
 const subjectColors: Record<string, "math" | "science" | "ela" | "social"> = {
   Math: "math",
@@ -33,9 +34,11 @@ interface CurriculumDetailClientProps {
     gradeLevel: string
     content: string
   }
+  saved: boolean
+  owned: boolean
 }
 
-export function CurriculumDetailClient({ curriculum }: CurriculumDetailClientProps) {
+export function CurriculumDetailClient({ curriculum, saved, owned }: CurriculumDetailClientProps) {
   const content: CurriculumContent = typeof curriculum.content === 'string' 
     ? JSON.parse(curriculum.content) 
     : curriculum.content
@@ -77,10 +80,13 @@ export function CurriculumDetailClient({ curriculum }: CurriculumDetailClientPro
                 {curriculum.description}
               </CardDescription>
             </div>
-            <Button onClick={handleDownload} className="gap-2">
-              <Download className="h-4 w-4" />
-              Download JSON
-            </Button>
+            <div className="flex gap-2">
+              {!owned && <SaveButton kind="curriculum" id={curriculum.id} saved={saved} />}
+              <Button onClick={handleDownload} className="gap-2">
+                <Download className="h-4 w-4" />
+                Download JSON
+              </Button>
+            </div>
           </div>
         </CardHeader>
       </Card>
@@ -146,7 +152,10 @@ export function CurriculumDetailClient({ curriculum }: CurriculumDetailClientPro
         </Card>
       )}
 
-      <div className="flex gap-4">
+      <div className="flex flex-wrap gap-4">
+        <Link href={`/lessons/new?curriculum=${curriculum.id}`}>
+          <Button variant="outline">Start a lesson</Button>
+        </Link>
         <Link href={`/quiz-generator?curriculum=${curriculum.id}`}>
           <Button className="gap-2">
             Generate Quiz from this Curriculum

@@ -1,35 +1,50 @@
 import { auth } from "@/auth"
 import Link from "next/link"
 import { redirect } from "next/navigation"
-import { BookOpen, Download, Search, Filter, GraduationCap } from "lucide-react"
+import { Download, Search, Filter, GraduationCap } from "lucide-react"
 import { Header } from "@/components/header"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { prisma } from "@/lib/db"
+import { SaveButton } from "@/components/save-button"
 
-async function getCurricula(search?: string, subject?: string, gradeLevel?: string) {
-  const where: Record<string, unknown> = { isPublic: true }
+async function getCurricula(options: {
+  userId: string
+  search?: string
+  subject?: string
+  gradeLevel?: string
+  mine?: boolean
+}) {
+  const filters: Record<string, unknown>[] = [
+    options.mine
+      ? {
+          OR: [
+            { userId: options.userId },
+            { saves: { some: { userId: options.userId } } },
+          ],
+        }
+      : { isPublic: true },
+  ]
 
-  if (search) {
-    where.OR = [
-      { title: { contains: search, mode: "insensitive" } },
-      { description: { contains: search, mode: "insensitive" } },
-    ]
+  if (options.search) {
+    filters.push({
+      OR: [
+        { title: { contains: options.search } },
+        { description: { contains: options.search } },
+      ],
+    })
   }
+  if (options.subject) filters.push({ subject: options.subject })
+  if (options.gradeLevel) filters.push({ gradeLevel: options.gradeLevel })
 
-  if (subject) {
-    where.subject = subject
-  }
-
-  if (gradeLevel) {
-    where.gradeLevel = gradeLevel
-  }
-
-  return await prisma.curriculum.findMany({
-    where,
+  return prisma.curriculum.findMany({
+    where: { AND: filters },
     orderBy: { createdAt: "desc" },
+    include: {
+      saves: { where: { userId: options.userId }, select: { userId: true } },
+    },
   })
 }
 
@@ -43,15 +58,22 @@ const subjectColors: Record<string, "math" | "science" | "ela" | "social"> = {
 export default async function CurriculaPage({
   searchParams,
 }: {
-  searchParams: Promise<{ search?: string; subject?: string; grade?: string }>
+  searchParams: Promise<{ search?: string; subject?: string; grade?: string; mine?: string }>
 }) {
   const session = await auth()
-  if (!session?.user) {
+  if (!session?.user?.id) {
     redirect("/login")
   }
 
   const params = await searchParams
-  const curricula = await getCurricula(params.search, params.subject, params.grade)
+  const mine = params.mine === "1"
+  const curricula = await getCurricula({
+    userId: session.user.id,
+    search: params.search,
+    subject: params.subject,
+    gradeLevel: params.grade,
+    mine,
+  })
 
   return (
     <div className="min-h-screen bg-slate-50">
@@ -61,17 +83,25 @@ export default async function CurriculaPage({
           {/* Header */}
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
             <div>
-              <h1 className="text-3xl font-bold text-slate-900">Curriculum Hub</h1>
+              <h1 className="text-3xl font-bold text-slate-900">
+                {mine ? "My curricula" : "Curriculum Hub"}
+              </h1>
               <p className="text-slate-600 mt-1">
-                Browse and download pre-built curricula aligned to WA/OR Common Core
+                {mine
+                  ? "Curricula you created or saved from the hub"
+                  : "Browse the full shared catalog, then save the ones you want in your library"}
               </p>
             </div>
+            <Link href={mine ? "/curricula" : "/curricula?mine=1"}>
+              <Button variant="outline">{mine ? "Full hub" : "My library"}</Button>
+            </Link>
           </div>
 
           {/* Filters */}
           <Card>
             <CardContent className="pt-6">
               <form className="flex flex-col md:flex-row gap-4">
+                {mine && <input type="hidden" name="mine" value="1" />}
                 <div className="relative flex-1">
                   <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
                   <Input
@@ -119,7 +149,9 @@ export default async function CurriculaPage({
               <CardContent className="flex flex-col items-center justify-center py-16">
                 <GraduationCap className="h-16 w-16 text-slate-300 mb-4" />
                 <h3 className="text-lg font-semibold text-slate-900 mb-2">No curricula found</h3>
-                <p className="text-slate-500">Try adjusting your search or filters</p>
+                <p className="text-slate-500">
+                  {mine ? "Save a curriculum from the hub to keep it here." : "Try adjusting your search or filters"}
+                </p>
               </CardContent>
             </Card>
           ) : (
@@ -134,17 +166,28 @@ export default async function CurriculaPage({
                       <Badge variant="outline">Grade {curriculum.gradeLevel}</Badge>
                     </div>
                     <CardTitle className="text-lg mt-2">{curriculum.title}</CardTitle>
+                    {curriculum.userId === session.user.id && <Badge variant="secondary">Yours</Badge>}
+                    {curriculum.userId !== session.user.id && curriculum.saves.length > 0 && (
+                      <Badge variant="secondary">Saved</Badge>
+                    )}
                     <CardDescription className="line-clamp-2">
                       {curriculum.description}
                     </CardDescription>
                   </CardHeader>
-                  <CardContent>
-                    <Link href={`/curricula/${curriculum.id}`}>
+                  <CardContent className="flex gap-2">
+                    <Link href={`/curricula/${curriculum.id}`} className="flex-1">
                       <Button className="w-full gap-2">
                         <Download className="h-4 w-4" />
-                        View & Download
+                        View
                       </Button>
                     </Link>
+                    {curriculum.userId !== session.user.id && (
+                      <SaveButton
+                        kind="curriculum"
+                        id={curriculum.id}
+                        saved={curriculum.saves.length > 0}
+                      />
+                    )}
                   </CardContent>
                 </Card>
               ))}
